@@ -156,6 +156,33 @@ class AccessToken:
 
         return True
 
+    def decode(self, originToken):
+        try:
+            dk6version = getVersion()
+            originVersion = originToken[:VERSION_LENGTH]
+            if (originVersion != dk6version):
+                return {}
+
+            originAppID = originToken[VERSION_LENGTH:(VERSION_LENGTH + APP_ID_LENGTH)]
+            originContent = originToken[(VERSION_LENGTH + APP_ID_LENGTH):]
+            originContentDecoded = base64.b64decode(originContent)
+
+            signature, crc_channel_name, crc_uid, m = unPackContent(originContentDecoded)
+            self.salt, self.ts, self.messages = unPackMessages(m)
+
+        except Exception, e:
+            print "error:", str(e)
+            return {}
+
+        return {
+            "appid": originAppID,
+            "salt": self.salt,
+            "ts": self.ts,
+            "messages": self.messages,
+            "crc_channel": crc_channel_name,
+            "crc_uid": crc_uid
+        }
+
     def build(self):
 
         self.messages = OrderedDict(sorted(self.messages.iteritems(), key=lambda x: int(x[0])))
@@ -176,3 +203,5 @@ class AccessToken:
         version = getVersion()
         ret = version + self.appID + base64.b64encode(content)
         return ret
+
+

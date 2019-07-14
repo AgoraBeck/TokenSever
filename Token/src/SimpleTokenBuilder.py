@@ -71,3 +71,6 @@ class SimpleTokenBuilder:
 
     def buildToken(self):
         return self.token.build()
+
+    def decode(self, originToken):
+        return self.token.decode(originToken)
